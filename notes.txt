@@ -1,0 +1,174 @@
+** Sales Product id = "selectSales"
+<select class="form-select" aria-label="status" id="selectSales" value="#"required>
+
+** Demand Product id = "selectDemand"
+<select class="form-select" aria-label="status" id="selectDemand" value="#"required>
+
+=======================================================================================
+app.py -> main, routes, variables for chart js (transferred to index)
+
+analysis.py -> cleaned data from transaction, data processing
+
+index.html -> analysis.html, chart js, [select product]
+
+transaction.html -> raw data (transferred to analysis)
+
+
+Algorithm:
+    ++ Apply ADASYN for data balancing
+
+Graph:
+    ++ Apply grouping for clustering
+    ++ How to extract data:
+        + Data from specific Product from Sales Table - Product Name, Date, Quantity, Total
+        + To and From Date
+
+Data needed for graph: -> Regression Forecast
+    *Line 1:
+        ++ x data: Date
+        ++ y data: Sales (Total) (add peso sign) | Demand (Qty)
+    *Line 2:
+        ++ x data: Date
+        ++ y data: Predicted y data -> Sales (add peso sign), Demand
+
+convert to dataframe if in python -> do not use list
+
+convert to list if in javascript -> do not use dataframe
+
+make functions with arguements
+
+backgroundColor: [
+          'rgba(21, 138, 128, 0.2)',
+          'rgba(32, 68, 125, 0.2)',
+          'rgba(3, 96, 166, 0.2)',
+          'rgba(32, 158, 173, 0.2)',
+          'rgba(64, 100, 153, 0.2)',
+          ],
+          borderColor:[
+          'rgba(21, 138, 128)',
+          'rgba(32, 68, 125)',
+          'rgba(3, 96, 166)',
+          'rgba(32, 158, 173)',
+          'rgba(64, 100, 153)',
+          ]
+
+- finalize interpretation:
+    {
+        Confidence Level: [100 - MAPE]%
+        Interpretation based on the data from [from date] to [to date]:
+        The upper and lower range represents the possible [total sales/demand] for [product name].
+        The [sales/demand] range shows [an increasing/ a decreasing] prediction trend, this trend
+        seems to be effective for the following week.
+    }
+
+PRODUCT ORDER -> 
+'rgba(13, 19, 33, 0.7)' - Non
+'rgba(11, 72, 107, 0.7)' - Slow
+'rgba(40, 182, 126, 0.7)' - Fast
+
+6 products = 
+slow = 0
+non = 2
+
+6 products = 
+slow = 2
+non = 0
+
+5 products = 
+slow = 2
+non = 0
+
+4 products =
+slow = 2
+non = 0
+
+get ave demand mean
+if product demand ave > ave mean = slow
+if porduct demand ave < ave mean = non
+
+====================================================================
+ERROR:
+same numbers in cluster
+colors
+
+
+swtch = 0
+		if (min(clustered.get_group(2)['Quantity']) < min(clustered.get_group(0)['Quantity']) < min(clustered.get_group(1)['Quantity']) ):
+			fast = clustered.get_group(1)
+			slow = clustered.get_group(0)
+			non = clustered.get_group(2)
+			swtch = 1
+		if(min(clustered.get_group(2)['Quantity']) < min(clustered.get_group(1)['Quantity']) < min(clustered.get_group(0)['Quantity']) ):
+			fast = clustered.get_group(0)
+			slow = clustered.get_group(1)
+			non = clustered.get_group(2)
+			swtch = 2
+		if(min(clustered.get_group(1)['Quantity']) < min(clustered.get_group(2)['Quantity']) < min(clustered.get_group(0)['Quantity']) ):
+			fast = clustered.get_group(0)
+			slow = clustered.get_group(2)
+			non = clustered.get_group(1)
+			swtch = 3
+		if(min(clustered.get_group(1)['Quantity']) < min(clustered.get_group(0)['Quantity']) < min(clustered.get_group(2)['Quantity']) ):
+			fast = clustered.get_group(2)
+			slow = clustered.get_group(0)
+			non = clustered.get_group(1)
+			swtch = 4
+		if(min(clustered.get_group(0)['Quantity']) < min(clustered.get_group(1)['Quantity']) < min(clustered.get_group(2)['Quantity']) ):
+			fast = clustered.get_group(2)
+			slow = clustered.get_group(1)
+			non = clustered.get_group(0)
+			swtch = 5
+		if(min(clustered.get_group(0)['Quantity']) < min(clustered.get_group(2)['Quantity']) < min(clustered.get_group(1)['Quantity']) ):
+			fast = clustered.get_group(1)
+			slow = clustered.get_group(2)
+			non = clustered.get_group(0)
+			swtch = 6
+            
+        fproducts = fast['ProductCode'].map(str).values.tolist()
+		sproducts = slow['ProductCode'].map(str).values.tolist()
+		nproducts = non['ProductCode'].map(str).values.tolist()
+
+===================================================================================================
+Accuracy of the Report:</b> {{ "%.2f"|format(salesData.confidence) }}% 
+Interpretation based on the data from [from date] to [to date]:
+Range of possible total sales for {{salesData.product}}:
+> average upper range: ₱ {{"%.2f"|format(salesData.upper_ave)}}
+> average lower range: ₱ {{"%.2f"|format(salesData.lower_ave)}} 
+The sales range shows 
+    {% if salesData.trend >= 0 %}<b> an increasing </b>{% endif %}
+    {% if salesData.trend <= 0 %}<b> a decreasing </b>{% endif %} 
+prediction trend, this trend seems to be effective for the following week.
+===================================================================================================
+Accuracy of the Prediction:  {{ "%.2f"|format(salesData.confidence) }}% 
+Interpretation based on the data from [from date] to [to date]:
+
+if trend is high positive:
+{% if salesData.trend >= 0.5 %}
+The product is showing a positive trend, the product is doing very well!
+It seems that the [sales/demand] of this product will increase further 
+for the next week [insert date]. The range of increase is from {{"%.2f"|format(salesData.lower_ave)}} 
+to {{"%.2f"|format(salesData.upper_ave)}}.
+Since this product is [in demand/selling well],
+it is advised to prioritize the inventory of this product to maximize net sales.
+{% endif %}
+
+if trend is low positive/steady:
+{% if salesData.trend > 0 && salesData.trend < 0.5 %}
+The product is showing a steady but positive trend. Not bad, the product is doing average!
+It seems that the [sales/demand] of this product will increase further slowly
+for the next week [insert date]. The range of increase is from {{"%.2f"|format(salesData.lower_ave)}} 
+to {{"%.2f"|format(salesData.upper_ave)}}.
+Since this product is slowly [in demand/selling well],
+it wont be a waste to prioritize the inventory of this product to maximize net sales, however,
+remember not to overstock!
+{% endif %}
+
+if trend is negative:
+{% if salesData.trend <= 0 %}
+The product is showing a negative trend... 
+It seems that the [sales/demand] of this product will decrease further 
+for the next week [insert date]. The range of decrease is from {{"%.2f"|format(salesData.lower_ave)}} 
+to {{"%.2f"|format(salesData.upper_ave)}}.
+Since this product is not [in demand/selling well],
+it is advised to prioritze the inventory of other products for now.
+{% endif %}

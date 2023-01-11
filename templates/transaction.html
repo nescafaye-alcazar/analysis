@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
+    <title>Transaction tables</title>
+</head>
+<body>
+   <div class="container">
+    <h1>Sales Table</h1>
+        <table id="salesTable"
+            class="table table-sortable table table-hover table-bordered mb-0 sticky-header tableFixHead">
+            <thead>
+                <tr style="vertical-align: middle;">
+                    <th style="width: 11.5%;">Date</th>
+                    <th>Product Code</th>
+                    <th>Product Name</th>
+                    <th style="width: 16%;">Price</th>
+                    <th style="width: 13%;">Quantity</th>
+                    <th style="width: 15%;">Total</th>
+                </tr>
+            </thead>
+            <tbody id="sales">
+                <tr>
+                    <td>01/27/22</td>
+                    <td>ABC</td>
+                    <td>Product 1</td>
+                    <td>Php 30.00</td>
+                    <td>5</td>
+                    <td>Php 150.00</td>
+                </tr>
+                <tr>
+                    <td>01/27/22</td>
+                    <td>ABC2</td>
+                    <td>Product 2</td>
+                    <td>Php 60.00</td>
+                    <td>2</td>
+                    <td>Php 120.00</td>
+                </tr>
+                <tr>
+                    <td>01/28/22</td>
+                    <td>ABC</td>
+                    <td>Product 1</td>
+                    <td>Php 30.00</td>
+                    <td>3</td>
+                    <td>Php 90.00</td>
+                </tr>
+                <tr>
+                    <td>01/29/22</td>
+                    <td>ABC</td>
+                    <td>Product 1</td>
+                    <td>Php 30.00</td>
+                    <td>2</td>
+                    <td>Php 60.00</td>
+                </tr>
+                <tr>
+                    <td>01/30/22</td>
+                    <td>ABC</td>
+                    <td>Product 1</td>
+                    <td>Php 30.00</td>
+                    <td>2</td>
+                    <td>Php 60.00</td>
+                </tr>
+                <tr>
+                    <td>01/31/22</td>
+                    <td>ABC</td>
+                    <td>Product 1</td>
+                    <td>Php 30.00</td>
+                    <td>3</td>
+                    <td>Php 90.00</td>
+                </tr>
+                <tr>
+                    <td>02/01/22</td>
+                    <td>ABC</td>
+                    <td>Product 1</td>
+                    <td>Php 30.00</td>
+                    <td>4</td>
+                    <td>Php 120.00</td>
+                </tr>
+                <tr>
+                    <td>02/2/22</td>
+                    <td>ABC</td>
+                    <td>Product 1</td>
+                    <td>Php 30.00</td>
+                    <td>2</td>
+                    <td>Php 60.00</td>
+                </tr>
+                <tr>
+                    <td>02/3/22</td>
+                    <td>ABC</td>
+                    <td>Product 1</td>
+                    <td>Php 30.00</td>
+                    <td>3</td>
+                    <td>Php 90.00</td>
+                </tr>
+                <tr>
+                    <td>02/5/22</td>
+                    <td>ABC</td>
+                    <td>Product 1</td>
+                    <td>Php 30.00</td>
+                    <td>2</td>
+                    <td>Php 60.00</td>
+                </tr>
+                <tr>
+                    <td>02/7/22</td>
+                    <td>ABC</td>
+                    <td>Product 1</td>
+                    <td>Php 30.00</td>
+                    <td>5</td>
+                    <td>Php 150.00</td>
+                </tr>
+                <tr>
+                    <td>02/01/22</td>
+                    <td>ABC3</td>
+                    <td>Product 3</td>
+                    <td>Php 20.00</td>
+                    <td>4</td>
+                    <td>Php 80.00</td>
+                </tr>
+                <tr>
+                    <td>02/01/22</td>
+                    <td>ABC3</td>
+                    <td>Product 3</td>
+                    <td>Php 20.00</td>
+                    <td>5</td>
+                    <td>Php 100.00</td>
+                </tr>
+                <tr>
+                    <td>02/01/22</td>
+                    <td>ABC4</td>
+                    <td>Product 4</td>
+                    <td>Php 20.00</td>
+                    <td>5</td>
+                    <td>Php 100.00</td>
+                </tr>
+                <tr>
+                    <td>02/01/22</td>
+                    <td>ABC4</td>
+                    <td>Product 4</td>
+                    <td>Php 20.00</td>
+                    <td>5</td>
+                    <td>Php 100.00</td>
+                </tr>
+                <tr>
+                    <td>02/01/22</td>
+                    <td>ABC5</td>
+                    <td>Product 4</td>
+                    <td>Php 20.00</td>
+                    <td>5</td>
+                    <td>Php 100.00</td>
+                </tr>
+                <tr>
+                    <td>02/01/22</td>
+                    <td>ABC5</td>
+                    <td>Product 5</td>
+                    <td>Php 20.00</td>
+                    <td>2</td>
+                    <td>Php 100.00</td>
+                </tr>
+                <tr>
+                    <td>02/01/22</td>
+                    <td>ABC7</td>
+                    <td>Product 5</td>
+                    <td>Php 20.00</td>
+                    <td>2</td>
+                    <td>Php 100.00</td>
+                </tr>
+                <tr>
+                    <td>02/01/22</td>
+                    <td>ABC6</td>
+                    <td>Product 5</td>
+                    <td>Php 20.00</td>
+                    <td>5</td>
+                    <td>Php 100.00</td>
+                </tr>
+            </tbody>
+        </table>
+        <h1>Expenses</h1>
+        <table id="tblStocks"
+            class="table table-sortable table table-hover table-bordered mb-0 tableFixHead">
+            <!--Sorted-->
+            <thead>
+                <tr>
+                    <th style="width:11.5%;">Date</th>
+                    <th style="width:18.5%">Item</th>
+                    <th style="width:18%;">Category</th>
+                    <th style="width:20%">Recipient</th>
+                    <th style="width:19%">Total</th>
+                </tr>
+            </thead>
+            <tbody id="expenses">
+                <tr>
+                    <td>{{row.expenses_date}}</td>
+                    <td>{{row.item|capitalize}}</td>
+                    <td>{% if row.category%}{{row.category|capitalize}}{% else %}None{% endif %}
+                    </td>
+                    <td>{{row.recipient|capitalize }}</td>
+                    <td>Php {{"{:,.2f}".format(row.expenses_total)}}</td>
+                </tr>
+            </tbody>
+        </table>
+        <h1>Profit</h1>
+        <table class="table table-sortable table table-hover table-bordered mb-0 tableFixHead">
+            <!--Sorted-->
+            <thead>
+                <tr>
+                    <th style="width: 7%;">Entry</th>
+                    <th>Date Range</th>
+                    <th>Sales</th>
+                    <th>Expenses</th>
+                    <th>Profit</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>date range</td>
+                    <td>sales</td>
+                    <td>expenses</td>
+                    <td>profit</td>
+                </tr>
+            </tbody>
+        </table>
+   </div>
+</body>
+</html>

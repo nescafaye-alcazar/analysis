@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Display Graphs</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.6.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha512-+NqPlbbtM1QqiK8ZAo4Yrj2c4lNQoGv8P79DPtKzj++l5jnN39rHA/xsqn8zE9l0uSoxaCdrOgFs6yjyfbBxSg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.3.4/jspdf.debug.js"></script>
+    <script src="/static/printThis.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.1.0/chartjs-plugin-datalabels.min.js" integrity="sha512-Tfw6etYMUhL4RTki37niav99C6OHwMDB2iBT5S5piyHO+ltK2YX8Hjy9TXxhE1Gm/TmAV0uaykSpnHKFIAif/A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+      }
+      .chartMenu {
+        width: 100vw;
+        height: 60px;
+        background: #1A1A1A;
+        color: rgb(44, 120, 139);
+      }
+
+      .chartCard {
+        width: 100vw;
+        height: calc(100vh - 40px);
+        background: rgba(31, 156, 129, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .chartBox {
+        width: 1000px;
+        padding: 0px;
+        border-radius: 15px;
+        border: solid 3px rgb(21, 80, 114);
+        background: white;
+      }
+
+      .chartBox p{
+        padding: 10px;
+        margin: 15px;
+        font-size: 18px;
+      }
+
+      .chartBox h1{
+        padding: 10px;
+        margin: 15px;
+      }
+
+      .chartBox table {
+        font-family: arial, sans-serif;
+        border-collapse: collapse;
+        width: 80%;
+        padding: 10px;
+        margin: 15px;
+        text-align: center;
+      }
+
+      .chartBox td, th {
+        border: 1px solid #26052cb6;
+        padding: 8px;
+      }
+
+      canvas{
+        padding: 10px;
+        margin: 15px;
+        font-size: 18px;
+      }
+
+      .button{
+        background-color: #2784a0;
+        color: white;
+        padding: 14px 25px;
+        text-align: center;
+        text-decoration: none;
+        margin: 30px;
+      }
+    </style>
+</head>
+<body>
+
+  <!--PRODUCT SALES FORECAST-->
+  <form action="/" method="POST">
+    <div class="dropdown fs-4">
+    <select class="form-select" aria-label="status" name="selectSales" value="#" required>
+       <option disabled>Select Product Name</option>
+       <option value="ABC" name="ABC">[ABC] Product 1</option>
+       <option value="ABC2" name="ABC2">[ABC2] Product 2</option>
+       <option value="ABC3" name="ABC3">[ABC3] Product 3</option>
+    </select>
+    </div>
+    <button type=submit class="button" data-toggle="collapse" href="#collapseSales" role="button"
+                                 aria-expanded="false" aria-controls="collapseSales" style="margin:20px;" 
+                                 onclick="salesHide()">
+                                 Generate Sales
+  </button>
+  </form>
+
+    <div class="chartCard collapse">
+      <div class="chartBox" id="salesContent">
+        <h1>Product: {{salesData.product}} Sales Forecast</h1>
+        <canvas id="myChart"></canvas>
+        <p>
+          <b>Accuracy of the Prediction:</b>  {{ "%.2f"|format(salesData.confidence) }}% <br>
+          <b>Interpretation based on the data from [from date] to [to date]:</b> <br>
+
+          {% if salesData.trend >= 0.5 %}
+            The product is showing a positive trend, the product is doing very well! <br>
+            It seems that the sales of this product will increase further for the next week [insert date]. <br>
+            The range of increase is from <b>₱ {{"%.2f"|format(salesData.lower_ave)}}
+            to ₱ {{"%.2f"|format(salesData.upper_ave)}}.</b> <br>
+            <b>Since this product is selling well,</b>
+            it is advised to prioritize the inventory of this product to maximize net sales. <br>
+          {% endif %}
+
+          {% if salesData.trend > 0 %}
+          {% if salesData.trend < 0.5 %} 
+            The product is showing a steady but positive trend. Not bad, the product is doing average! <br>
+            It seems that the sales of this product will increase further slowly for the next week [insert date]. <br>
+            The range of increase is from <b>₱ {{"%.2f"|format(salesData.lower_ave)}}
+            to ₱ {{"%.2f"|format(salesData.upper_ave)}}.</b> <br>
+            <b>Since this product is slowly selling well,</b>
+            it wont be a waste to prioritize the inventory of this product to maximize net sales, however,
+            remember not to overstock! <br>
+          {% endif %}
+          {% endif %}
+
+          {% if salesData.trend <= 0 %}
+            The product is showing a negative trend... <br>
+            It seems that the sales of this product will decrease further for the next week [insert date]. <br>
+            The range of decrease is from <b>₱ {{"%.2f"|format(salesData.lower_ave)}}
+            to ₱ {{"%.2f"|format(salesData.upper_ave)}}.</b> <br>
+            <b>Since this product is not selling well,</b>
+            it is advised to prioritze the inventory of other products for now. <br>
+          {% endif %}
+        </p>
+      </div>
+      <a id="pngSales" class="button" role="button">Download PNG</a>
+      <a id="pdfSales" class="button" role="button" onclick="printDiv()">Download PDF</a>
+    </div>
+
+    <script type="text/Javascript">
+      var salesData = {{ salesData|tojson }};
+      const product = salesData.product;
+      const xlabels = salesData.salesx;
+      const ylabels = salesData.salesy;
+      const yline = salesData.salespred;
+      const upper = salesData.upper;
+      const lower = salesData.lower;
+
+    chartIt();
+
+    function chartIt(){
+      //await getData();
+      const ctx = document.getElementById('myChart');
+      Chart.defaults.font.size = 16;
+      const myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: xlabels,
+          datasets: [
+            {
+              label: 'Total Sales (₱)',
+              data: ylabels,
+              backgroundColor: 'rgba(11, 148, 128, 0.2)',
+              borderColor: 'rgba(11, 148, 128)',
+              borderWidth: 3,
+              fill: false
+            },
+            {
+              label: 'Prediction Trend',
+              data: yline,
+              backgroundColor: 'rgba(57, 11, 145, 0.2)',
+              borderColor: 'rgba(57, 11, 145)',
+              borderWidth: 1,
+              fill: false
+            },
+            {
+              label: 'Upper range',
+              data: upper,
+              backgroundColor: 'rgba(11, 114, 145, 0.2)',
+              borderColor: 'rgba(11, 114, 145)',
+              tension: 0.4,
+              borderWidth: 2,
+              fill: true
+            },
+            {
+              label: 'Lower range',
+              data: lower,
+              backgroundColor: 'rgba(11, 114, 145, 0.2)',
+              borderColor: 'rgba(11, 114, 145)',
+              tension:0.4,
+              borderWidth: 2,
+              fill: true
+            }
+          ]
+        },
+        options: {
+          plugins:{
+            tooltip:{
+              callbacks:{
+                title: context =>{
+                  const d = new Date(context[0].parsed.x);
+                  const formattedDate = d.toLocaleString([],{
+                    month: 'long',
+                    day: 'numeric'
+                  });
+                  return formattedDate;
+                }
+              }
+            }
+          },
+          scales:{
+            x: {
+              type: 'time',
+              time: {
+                unit: 'day'
+              },
+              title:{
+                display: true,
+                text: 'Date'
+              }
+            },
+            y:{
+              beginAtZero: true,
+              ticks:{
+                callback: (value, index, values) => {
+                  return `\u20B1 ${value}`;
+                }
+              },
+              title:{
+                display: true,
+                text: 'Sales for product:' + product
+              }
+            }
+          }
+        }
+      });
+    }
+  </script>
+  <!--end of product sales forecast-->
+
+  <!--DEMAND SALES FORECAST-->
+  <form action="/" method="POST">
+    <div class="dropdown fs-4">
+    <select class="form-select" aria-label="status" name="selectDemand" value="#" required>
+       <option disabled>Select Product Name</option>
+       <option value="ABC" name="ABC">[ABC] Product 1</option>
+       <option value="ABC2" name="ABC2">[ABC2] Product 2</option>
+       <option value="ABC3" name="ABC3">[ABC3] Product 3</option>
+    </select>
+    </div>
+    <button type=submit class="button" data-toggle="collapse" href="#collapseSales" role="button"
+                                 aria-expanded="false" aria-controls="collapseSales" style="margin:20px;"
+                                 onclick="salesHide()">
+                                 Generate Demand
+  </button>
+  </form>
+  <!--start export-->
+   <div class="chartCard">
+    <div class="chartBox" id="demandContent">
+      <h1>Product: {{demandData.product}} Demand Forecast</h1>
+      <canvas id="myChart2"></canvas>
+      <b>
+        <b>Accuracy of the Prediction:</b>  {{ "%.2f"|format(demandData.confidence) }}% <br>
+        <b>Interpretation based on the data from [from date] to [to date]:</b> <br>
+
+          {% if demandData.trend >= 0.5 %}
+            The product is showing a positive trend, the product is doing very well! <br>
+            It seems that the demand of this product will increase further for the next week [insert date]. <br>
+            The range of increase is from {{"%.2f"|format(demandData.lower_ave)}}
+            to ₱ {{"%.2f"|format(demandData.upper_ave)}}. <br>
+            <b>Since this product is in demand,</b>
+            it is advised to prioritize the inventory of this product to maximize net sales. <br>
+          {% endif %}
+
+          {% if demandData.trend > 0 %} 
+          {% if demandData.trend < 0.5 %} 
+          {{demandData.trend}}
+            The product is showing a steady but positive trend. Not bad, the product is doing average! <br>
+            It seems that the demand of this product will increase further slowly for the next week [insert date]. <br>
+            The range of increase is from <b>{{"%.2f"|format(demandData.lower_ave)}}
+            to {{"%.2f"|format(demandData.upper_ave)}}. </b><br>
+            <b>Since this product is slowly in demand,</b>
+            it wont be a waste to prioritize the inventory of this product to maximize net sales, however,
+            remember not to overstock! <br>
+          {% endif %}
+          {% endif %}
+
+          {% if demandData.trend <= 0 %}
+            The product is showing a negative trend... <br>
+            It seems that the demand of this product will decrease further for the next week [insert date]. <br>
+            The range of decrease is from <b>{{"%.2f"|format(demandData.lower_ave)}} 
+            to {{"%.2f"|format(demandData.upper_ave)}}. </b><br>
+            <b>Since this product is not in demand,</b> <br>
+            it is advised to prioritze the inventory of other products for now. <br>
+          {% endif %}
+      </p>
+    </div>
+    <a id="downloadDemand" class="button" role="button">Download</a>
+  </div>
+  <!--end export-->
+
+    <script type="text/Javascript">
+      var demandData = {{ demandData|tojson }};
+      const product2 = demandData.product;
+      const xlabels2 = demandData.demandx;
+      const ylabels2 = demandData.demandy;
+      const yline2 = demandData.demandpred;
+      const upper2 = demandData.upper;
+      const lower2 = demandData.lower;
+
+    chartIt2();
+
+    function chartIt2(){
+      const ctx = document.getElementById('myChart2');
+      const myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: xlabels2,
+          datasets: [
+            {
+              label: 'Units Sold',
+              data: ylabels2,
+              backgroundColor: 'rgba(11, 148, 128, 0.2)',
+              borderColor: 'rgba(11, 148, 128)',
+              borderWidth: 3,
+              fill: false
+            },
+            {
+              label: 'Prediction Trend',
+              data: yline2,
+              backgroundColor: 'rgba(57, 11, 145, 0.2)',
+              borderColor: 'rgba(57, 11, 145)',
+              borderWidth: 1,
+              fill: false
+            },
+            {
+              label: 'Upper range',
+              data: upper2,
+              backgroundColor: 'rgba(11, 114, 145, 0.2)',
+              borderColor: 'rgba(11, 114, 145)',
+              tension: 0.4,
+              borderWidth: 2,
+              fill: true
+            },
+            {
+              label: 'Lower range',
+              data: lower2,
+              backgroundColor: 'rgba(11, 114, 145, 0.2)',
+              borderColor: 'rgba(11, 114, 145)',
+              tension:0.4,
+              borderWidth: 2,
+              fill: true
+            }
+          ]
+        },
+        options: {
+          plugins:{
+            tooltip:{
+              callbacks:{
+                title: context =>{
+                  const d = new Date(context[0].parsed.x);
+                  const formattedDate = d.toLocaleString([],{
+                    month: 'long',
+                    day: 'numeric'
+                  });
+                  return formattedDate;
+                }
+              }
+            }
+          },
+          scales:{
+            x: {
+              type: 'time',
+              time: {
+                unit: 'day'
+              },
+              title:{
+                display: true,
+                text: 'Date'
+              }
+            },
+            y:{
+              beginAtZero: true,
+              title:{
+                display: true,
+                text: 'Demand for product: ' + product2
+              }
+            }
+          }
+        }
+      });
+    }
+  </script>
+  <!--end demand sales forecast-->
+
+  <!--PRODUCT ORDER ANALYSIS-->
+  <div class="chartCard">
+    <div class="chartBox">
+      <h1>Product Order Analysis</h1>
+      <h3>Sales Period: [from date] - [to date]</h3>
+      <canvas id="myChart3"></canvas>
+      <table>
+        <tr>
+          <th style="background-color: rgba(40, 182, 126, 0.5); color: #000;">Fast-Moving</th>
+          <th style="background-color: rgba(11, 72, 107, 0.5); color: #000;">Slow-Moving</th>
+          <th style="background-color: rgba(13, 19, 33, 0.5); color: #000;">Non-Moving</th>
+        </tr>
+        <!--for loop: cluster-->
+        
+        <tr>
+          <!--if else-->
+          <td style="background-color: rgba(40, 182, 126, 0.1);">Product1</td>
+          <td style="background-color: rgba(11, 72, 107, 0.1);">Product3</td>
+          <td style="background-color: rgba(13, 19, 33, 0.1); ">Product3</td>
+          <!--end if-->
+        </tr>
+        <!--end for-->
+      </table>
+      <p>
+          <b>Interpretation:</b> <br>
+          The following products appears to be doing well in terms of average demand per day: <br>
+          {% for data in clusterData.fproducts %} {{ data }} {% endfor %} <br>
+          It is advised to focus on their inventories so they wouldnt sold out while in demand!
+      </p>
+    </div>
+  </div>
+
+  <script type="text/Javascript">
+    var clusterData = {{ clusterData|tojson }};
+    const cluster_y = clusterData.cluster_y;
+    const cluster_x = clusterData.cluster_x;
+    const clusters = clusterData.clusters;
+
+    const swtch = clusterData.swtch;
+    const n = clusterData.n;
+
+    const backgroundcolor = [];
+
+    if(n>=3){
+    if(swtch==1){
+      for(i=0; i<clusters.length; i++){
+        if(clusters[i] == 2) { backgroundcolor.push('rgba(13, 19, 33, 0.7)')} //non
+        if(clusters[i] == 0) { backgroundcolor.push('rgba(11, 72, 107, 0.7)')} //slow
+        if(clusters[i] == 1) { backgroundcolor.push('rgba(40, 182, 126, 0.7)')} //fast
+        }
+      }if(swtch==2){
+      for(i=0; i<clusters.length; i++){
+        if(clusters[i] == 2) { backgroundcolor.push('rgba(13, 19, 33, 0.7)')} //non
+        if(clusters[i] == 1) { backgroundcolor.push('rgba(11, 72, 107, 0.7)')} //slow
+        if(clusters[i] == 0) { backgroundcolor.push('rgba(40, 182, 126, 0.7)')} //fast
+      }
+    }if(swtch==3){
+      for(i=0; i<clusters.length; i++){
+        if(clusters[i] == 1) { backgroundcolor.push('rgba(13, 19, 33, 0.7)')} //non
+        if(clusters[i] == 2) { backgroundcolor.push('rgba(11, 72, 107, 0.7)')} //slow
+        if(clusters[i] == 0) { backgroundcolor.push('rgba(40, 182, 126, 0.7)')} //fast
+      }
+    }if(swtch==4){
+      for(i=0; i<clusters.length; i++){
+        if(clusters[i] == 1) { backgroundcolor.push('rgba(13, 19, 33, 0.7)')} //non
+        if(clusters[i] == 0) { backgroundcolor.push('rgba(11, 72, 107, 0.7)')} //slow
+        if(clusters[i] == 2) { backgroundcolor.push('rgba(40, 182, 126, 0.7)')} //fast
+      }
+    }if(swtch==5){
+      for(i=0; i<clusters.length; i++){
+        if(clusters[i] == 0) { backgroundcolor.push('rgba(13, 19, 33, 0.7)')} //non
+        if(clusters[i] == 1) { backgroundcolor.push('rgba(11, 72, 107, 0.7)')} //slow
+        if(clusters[i] == 2) { backgroundcolor.push('rgba(40, 182, 126, 0.7)')} //fast
+      }
+    }if(swtch==6){
+      for(i=0; i<clusters.length; i++){
+        if(clusters[i] == 0) { backgroundcolor.push('rgba(13, 19, 33, 0.7)')} //non
+        if(clusters[i] == 2) { backgroundcolor.push('rgba(11, 72, 107, 0.7)')} //slow
+        if(clusters[i] == 1) { backgroundcolor.push('rgba(40, 182, 126, 0.7)')} //fast
+      }
+    }
+  }
+
+    if(n==2){
+      for(i=0; i<clusters.length; i++){
+        if(clusters[i] == 0 & swtch == 0) { backgroundcolor.push('rgba(11, 72, 107, 0.7)')} //slow
+        if(clusters[i] == 1 & swtch == 0) { backgroundcolor.push('rgba(40, 182, 126, 0.7)')}
+        if(clusters[i] == 1 & swtch == 1) { backgroundcolor.push('rgba(11, 72, 107, 0.7)')} //slow
+        if(clusters[i] == 0 & swtch == 1) { backgroundcolor.push('rgba(40, 182, 126, 0.7)')}
+      }
+    }
+    if(n==1){
+      for(i=0; i<clusters.length; i++){
+        backgroundcolor.push('rgba(40, 182, 126, 0.7)')
+      }
+    }
+
+    // setup 
+    const data = {
+      labels: cluster_x,
+      datasets: [{
+        label: 'Demand per Day',
+        data: cluster_y,
+        backgroundColor: backgroundcolor,
+        borderColor: backgroundcolor,
+        borderWidth: 1,
+        datalabels:{
+          color: 'gray',
+          anchor: 'end',
+          align: 'top',
+          offset: 5
+        }
+      }]
+    };
+    const backgroundColor = [];
+    const legend = [];
+    
+    if(n>=3){
+      const backgroundColor = ['rgba(40, 182, 126, 0.5)','rgba(11, 72, 107, 0.5)','rgba(13, 19, 33, 0.5)'];
+      const legend = ['Fast-Moving', 'Slow-Moving', 'Non-Moving'];
+    };
+    if(n==2){
+      const backgroundColor = ['rgba(40, 182, 126, 0.5)','rgba(11, 72, 107, 0.5)'];
+      const legend = ['Fast-Moving', 'Slow-Moving'];
+    };
+    if(n==1){
+      const backgroundColor = ['rgba(40, 182, 126, 0.5)'];
+      const legend = ['Fast-Moving'];
+    };
+    
+    // config 
+    const config = {
+      type: 'bar',
+      data,
+      plugins: [ChartDataLabels],
+      options: {
+        plugins: {
+            legend: {
+              labels:{
+                generateLabels: (chart) => {
+                  console.log(chart)
+                  return backgroundColor.map(
+                    (label, index) => ({
+                      text: legend[index],
+                      strokeStyle: backgroundColor[index],
+                      fillStyle: backgroundColor[index],
+                    })
+                  )
+                }
+              },
+                display: true,
+                color: 'red'
+            },
+        },
+        scales: {
+          x:{
+            title:{
+              display: true,
+              text: 'Products'
+            }
+          },
+          y: {
+            beginAtZero: true,
+            grace: 1,
+            title:{
+                display: true,
+                text: 'Average Demand per Day'
+              }
+          }
+        }
+      }
+    };
+
+    // render init block
+    const myChart = new Chart(
+      document.getElementById('myChart3'),
+      config
+    );
+</script>
+
+<!--SUMMARY OF CANCELLED SALES-->
+<div class="chartCard">
+  <div class="chartBox">
+    <h1>Summary of Canceled Sales</h1>
+    <table class="table table-hover">
+      <thead>
+         <tr class="table-light">
+            <th scope="col">Order Number
+            </th>
+            <th scope="col">Date
+            </th>
+            <th scope="col">Time
+            </th>
+            <th scope="col">Item
+            </th>
+            <th scope="col">Category
+            </th>
+         </tr>
+      </thead>
+      <tbody>
+         <tr>
+            <td>20221311</td>
+            <td>2022-03-04</td>
+            <td>10:39 AM</td>
+            <td>Yema Cake</td>
+            <td>Cake</td>
+         </tr>
+         <tr>
+            <td>20221323</td>
+            <td>2022-03-10</td>
+            <td>12:39 PM</td>
+            <td>Cinnamon Roll</td>
+            <td>Bread</td>
+         </tr>
+         <tr>
+            <td>20221300</td>
+            <td>2022-03-14</td>
+            <td>03:21 PM</td>
+            <td>Blueberry</td>
+            <td>Cake</td>
+         </tr>
+      </tbody>
+   </table>
+   <div class="description">
+      <p><b>Summary:</b> From [From Date] to [To Date], products of the <b>Cake</b>
+        category are likely to be susceptible to cancellation.</p>
+   </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+  function autoClick(){
+    $("#downloadSales").click();
+    $("#downloadDemand").click();
+  }
+
+  //PDF
+  //#pdfSales -> id for 'Generate PDF' button
+  //#salesContent -> id for div
+  $(document).ready(function(){
+    $('#pdfSales').click(function(){
+      $('#salesContent').printThis();
+    })
+  })
+  $(document).ready(function(){
+    $('#pdfDemand').click(function(){
+      $('#demandContent').printThis();
+    })
+  })
+  $(document).ready(function(){
+    $('#pdfProduct').click(function(){
+      $('#productContent').printThis();
+    })
+  })
+  $(document).ready(function(){
+    $('#pdfCanceled').click(function(){
+      $('#canceledContent').printThis();
+    })
+  })
+  //PNG
+  //$(document).ready(function(){
+    //id ng div na ieexport
+    //var salespng = $("#salesContent");
+    //var demandpng = $("#demandContent");
+    //var fsnpng = $("#productContent");
+    //var canceledpng = $("#canceledContent");
+
+    //id ng button na may 'Generate PNG'
+    //$("#downloadSales").on('click', function(){
+    //  html2canvas(salespng, {
+    //    onrendered: function(canvas) {
+    //      var imageData = canvas.toDataURL("image/png");
+    //      var newData = imageData.replace(/^data:image\/png/, "data:application/octet-stream");
+    //      $("#downloadSales").attr("download", "Sales_Forecast.png").attr("href", newData);
+    //    }
+    //  });
+    //});
+  //});
+//PNG
+  document.getElementById("pngSales").onclick=function(){
+      const content=document.getElementById("salesContent");
+      html2canvas(content).then((canvas)=>{
+        const image=canvas.toDataURL("image/jpg",0.1);
+        var anchor=document.createElement('a');
+        anchor.setAttribute("href", image);
+        anchor.setAttribute("download", "Sales_Forecast.jpg");
+        anchor.click();
+        anchor.remove();
+      })
+    };
+//    document.getElementById("demandBtnPNG").onclick=function(){
+//      const content=document.getElementById("demandDiv");
+//      html2canvas(content).then((canvas)=>{
+//        const image=canvas.toDataURL("image/png");
+//        var anchor=document.createElement('a');
+//        anchor.setAttribute("href", image);
+//        anchor.setAttribute("download", "Demand_Forecast.png");
+//        anchor.click();
+//        anchor.remove();
+//      })
+//    };
+//    document.getElementById("poaBtnPNG").onclick=function(){
+//      const content=document.getElementById("poaDiv");
+//      html2canvas(content).then((canvas)=>{
+//        const image=canvas.toDataURL("image/png");
+//        var anchor=document.createElement('a');
+//        anchor.setAttribute("href", image);
+//        anchor.setAttribute("download", "Product_Order_Analysis.png");
+//        anchor.click();
+//        anchor.remove();
+//      })
+//    };
+//    document.getElementById("canceledBtnPNG").onclick=function(){
+//      const content=document.getElementById("cndDiv");
+//      html2canvas(content).then((canvas)=>{
+//        const image=canvas.toDataURL("image/png");
+//        var anchor=document.createElement('a');
+//        anchor.setAttribute("href", image);
+//        anchor.setAttribute("download", "Canceled_Summary.png");
+//        anchor.click();
+//        anchor.remove();
+//      })
+//    };
+</script>
+</body>
+</html>
